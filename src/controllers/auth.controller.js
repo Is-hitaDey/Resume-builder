@@ -61,7 +61,7 @@ async function registerUserController(req,res){
  */
 
 async function loginUserController(req,res){
-    const {username,email} = req.body
+    const {email,password} = req.body
 
     const user = await userModel.findOne({email})
 
@@ -71,7 +71,7 @@ async function loginUserController(req,res){
         })
     }
 
-    const isPasswordValid= bcrypt.compare(password,user.password)
+    const isPasswordValid= await bcrypt.compare(password,user.password)
 
     if (!isPasswordValid){
         return res.status(400).json({
@@ -79,7 +79,7 @@ async function loginUserController(req,res){
         })
     }
 
-    const toekn = jwt.sign(
+    const token = jwt.sign(
         { id: user._id, username: user.username},
         process.env.JWT_SECRET,
         {expiresIn:"1d"}
@@ -96,7 +96,23 @@ async function loginUserController(req,res){
     })
 }
 
+async function logoutUserController(req,res){
+    const token= req.cookies.token
+
+    if(token){
+        await tokenBlacklistModel.create({token})
+    }
+
+    res.clearCookie("token")
+
+    res.status(200).json({
+        message:"User logged out successfully"
+    })
+}
+
+
 module.exports={
     registerUserController,
-    loginUserController
+    loginUserController,
+    logoutUserController
 }
