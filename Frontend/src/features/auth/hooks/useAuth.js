@@ -1,4 +1,4 @@
-import { useContext,useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../auth.context";
 import { login, register, logout, getMe } from "../services/auth.api";
 
@@ -29,10 +29,10 @@ export const useAuth = () => {
         try {
             const data = await register({ username, email, password })
 
-        setUser(data.user)
+            setUser(data.user)
         } catch (error) {
             console.log(error)
-        }finally{
+        } finally {
             setLoading(false)
         }
 
@@ -42,25 +42,36 @@ export const useAuth = () => {
         setLoading(true)
         try {
             const data = await logout()
-        setUser(null)
+            setUser(null)
         } catch (error) {
             console.log(error)
-        }finally{
-            setLoading(false)
-        }    
-        
-    }
-
-    useEffect(()=>{
-
-        const getAndSetUser= async()=>{
-            const data = await getMe()
-            setUser(data.user)
+        } finally {
             setLoading(false)
         }
 
-        getAndSetUser()
-    },[])
+    }
+
+    useEffect(() => {
+
+        const getAndSetUser = async () => {
+            try {
+                const data = await getMe();
+                // Use optional chaining or a null check to prevent the crash
+                if (data && data.user) {
+                    setUser(data.user);
+                } else {
+                    setUser(null);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getAndSetUser();
+    }, []);
 
     return { user, loading, handleRegister, handleLogin, handleLogout }
 }
