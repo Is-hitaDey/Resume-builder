@@ -1,173 +1,419 @@
-const { GoogleGenAI } = require("@google/genai")
-const { z } = require("zod")
-const { zodToJsonSchema } = require("zod-to-json-schema")
+const { GoogleGenAI } = require("@google/genai");
+const { z } = require("zod");
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
-})
+});
 
 
-async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
+// ======================================================
+// ZOD VALIDATION SCHEMA
+// ======================================================
 
-    const responseSchema = {
-        type: "OBJECT",
+const responseZodSchema = z.object({
 
-        properties: {
-            matchScore: {
-                type: "NUMBER",
-                description: "A score between 0 and 100 indicating how well the candidate's resume and self-description match the job description."
-            },
+    matchScore: z
+        .number()
+        .min(0)
+        .max(100),
 
-            technicalQuestions: {
-                type: "ARRAY",
-                description: "Technical questions that can be asked in the interview along with their intention and how to answer them.",
-                items: {
-                    type: "OBJECT",
-                    properties: {
-                        question: {
-                            type: "STRING",
-                            description: "The technical question that can be asked in the interview"
-                        },
+    technicalQuestions: z.array(
 
-                        intention: {
-                            type: "STRING",
-                            description: "The intention of interviewer behind asking this question"
-                        },
+        z.object({
 
-                        answer: {
-                            type: "STRING",
-                            description: "How to answer this question, what points to cover, what approach to take etc."
-                        }
-                    },
+            question: z.string(),
 
-                    required: ["question", "intention", "answer"]
-                }
-            },
+            intention: z.string(),
 
-            behavioralQuestions: {
-                type: "ARRAY",
-                description: "Behavioral questions that can be asked in the interview along with their intention and how to answer them.",
+            answer: z.string()
 
-                items: {
-                    type: "OBJECT",
+        })
 
-                    properties: {
-                        question: {
-                            type: "STRING",
-                            description: "The behavioral question that can be asked in the interview"
-                        },
+    ),
 
-                        intention: {
-                            type: "STRING",
-                            description: "The intention of interviewer behind asking this question"
-                        },
+    behavioralQuestions: z.array(
 
-                        answer: {
-                            type: "STRING",
-                            description: "How to answer this question, what points to cover, what approach to take etc."
-                        }
-                    },
+        z.object({
 
-                    required: ["question", "intention", "answer"]
-                }
-            },
+            question: z.string(),
 
-            skillGaps: {
-                type: "ARRAY",
+            intention: z.string(),
 
-                description: "The skill gaps that the candidate has with respect to the job description, along with their severity.",
+            answer: z.string()
 
-                items: {
-                    type: "OBJECT",
+        })
 
-                    properties: {
-                        skill: {
-                            type: "STRING",
-                            description: "The skill which the candidate is lacking"
-                        },
+    ),
 
-                        severity: {
-                            type: "STRING",
-                            enum: ["low", "medium", "high"],
-                            description: "The severity of the skill gap"
-                        }
-                    },
+    skillGaps: z.array(
 
-                    required: ["skill", "severity"]
-                }
-            },
+        z.object({
 
-            preparationPlan: {
-                type: "ARRAY",
+            skill: z.string(),
 
-                description: "A day-wise preparation plan for the candidate to prepare for the interview.",
+            severity: z.enum([
+                "low",
+                "medium",
+                "high"
+            ])
 
-                items: {
-                    type: "OBJECT",
+        })
 
-                    properties: {
-                        day: {
-                            type: "NUMBER",
-                            description: "The day number of the preparation plan"
-                        },
+    ),
 
-                        focus: {
-                            type: "STRING",
-                            description: "The main focus of preparation for that day"
-                        },
+    preparationPlan: z.array(
 
-                        tasks: {
-                            type: "ARRAY",
+        z.object({
 
-                            description: "Specific preparation tasks",
+            day: z.number(),
 
-                            items: {
-                                type: "STRING"
-                            }
-                        }
-                    },
+            focus: z.string(),
 
-                    required: ["day", "focus", "tasks"]
-                }
-            }
+            tasks: z.array(
+                z.string()
+            )
+
+        })
+
+    )
+
+});
+
+
+// ======================================================
+// GEMINI RESPONSE SCHEMA
+// ======================================================
+
+const responseSchema = {
+
+    type: "OBJECT",
+
+    properties: {
+
+        matchScore: {
+            type: "NUMBER",
+            description:
+                "A score between 0 and 100"
         },
 
-        required: [
-            "matchScore",
-            "technicalQuestions",
-            "behavioralQuestions",
-            "skillGaps",
-            "preparationPlan"
-        ]
-    };
+        technicalQuestions: {
 
-    const prompt = `Generate an interview report STRICTLY in the provided JSON schema format.
+            type: "ARRAY",
 
-Rules:
-- Return ONLY valid JSON
-- Do NOT add extra fields
-- Do NOT change field names
-- Follow the schema exactly
-        Resume: ${resume}
-        Self Description: ${selfDescription}
-        Job Description: ${jobDescription}`
+            items: {
 
+                type: "OBJECT",
 
+                properties: {
 
+                    question: {
+                        type: "STRING"
+                    },
 
-    const response = await ai.models.
-        generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema
+                    intention: {
+                        type: "STRING"
+                    },
+
+                    answer: {
+                        type: "STRING"
+                    }
+
+                },
+
+                required: [
+                    "question",
+                    "intention",
+                    "answer"
+                ]
+
             }
 
-        });
-    const data = JSON.parse(response.text)
-    console.log(JSON.stringify(data, null, 2));
-    return data;
+        },
+
+        behavioralQuestions: {
+
+            type: "ARRAY",
+
+            items: {
+
+                type: "OBJECT",
+
+                properties: {
+
+                    question: {
+                        type: "STRING"
+                    },
+
+                    intention: {
+                        type: "STRING"
+                    },
+
+                    answer: {
+                        type: "STRING"
+                    }
+
+                },
+
+                required: [
+                    "question",
+                    "intention",
+                    "answer"
+                ]
+
+            }
+
+        },
+
+        skillGaps: {
+
+            type: "ARRAY",
+
+            items: {
+
+                type: "OBJECT",
+
+                properties: {
+
+                    skill: {
+                        type: "STRING"
+                    },
+
+                    severity: {
+
+                        type: "STRING",
+
+                        enum: [
+                            "low",
+                            "medium",
+                            "high"
+                        ]
+
+                    }
+
+                },
+
+                required: [
+                    "skill",
+                    "severity"
+                ]
+
+            }
+
+        },
+
+        preparationPlan: {
+
+            type: "ARRAY",
+
+            items: {
+
+                type: "OBJECT",
+
+                properties: {
+
+                    day: {
+                        type: "NUMBER"
+                    },
+
+                    focus: {
+                        type: "STRING"
+                    },
+
+                    tasks: {
+
+                        type: "ARRAY",
+
+                        items: {
+                            type: "STRING"
+                        }
+
+                    }
+
+                },
+
+                required: [
+                    "day",
+                    "focus",
+                    "tasks"
+                ]
+
+            }
+
+        }
+
+    },
+
+    required: [
+        "matchScore",
+        "technicalQuestions",
+        "behavioralQuestions",
+        "skillGaps",
+        "preparationPlan"
+    ]
+
+};
+
+
+// ======================================================
+// MAIN FUNCTION
+// ======================================================
+
+async function generateInterviewReport({
+    resume,
+    selfDescription,
+    jobDescription
+}) {
+
+    const prompt = `
+Generate an interview report STRICTLY in valid JSON format.
+
+IMPORTANT RULES:
+- Return ONLY valid JSON
+- Do NOT return markdown
+- Do NOT use \`\`\`
+- Do NOT add explanations
+- Do NOT add extra fields
+- Follow schema exactly
+- skillGaps MUST contain:
+  - skill
+  - severity
+- severity must ONLY be:
+  - low
+  - medium
+  - high
+
+Resume:
+${resume}
+
+Self Description:
+${selfDescription}
+
+Job Description:
+${jobDescription}
+`;
+
+    try {
+
+        const response =
+            await ai.models.generateContent({
+
+                model: "gemini-2.5-flash",
+
+                contents: prompt,
+
+                config: {
+
+                    responseMimeType:
+                        "application/json",
+
+                    responseSchema
+
+                }
+
+            });
+
+        // ============================================
+        // RAW RESPONSE
+        // ============================================
+
+        const rawData =
+            JSON.parse(response.text);
+
+        // ============================================
+        // OPTIONAL AUTO FIXES
+        // ============================================
+
+        // Auto-fix missing severity
+
+        if (rawData.skillGaps) {
+
+            rawData.skillGaps =
+                rawData.skillGaps.map((item) => {
+
+                    // if AI returns string instead of object
+
+                    if (typeof item === "string") {
+
+                        return {
+                            skill: item,
+                            severity: "medium"
+                        };
+                    }
+
+                    // if severity missing
+
+                    if (!item.severity) {
+
+                        item.severity = "medium";
+                    }
+
+                    return item;
+                });
+        }
+
+        // ============================================
+        // VALIDATE USING ZOD
+        // ============================================
+
+        const validatedData =
+            responseZodSchema.parse(rawData);
+
+        console.log(
+            JSON.stringify(
+                validatedData,
+                null,
+                2
+            )
+        );
+
+        return validatedData;
+
+    } catch (error) {
+
+        console.error(
+            "AI Interview Report Generation Error:",
+            error
+        );
+
+        // ============================================
+        // ZOD VALIDATION ERROR
+        // ============================================
+
+        if (error.name === "ZodError") {
+
+            console.log(error.issues);
+
+            throw new Error(
+
+                `Invalid AI response format:\n${JSON.stringify(
+                    error.issues,
+                    null,
+                    2
+                )}`
+
+            );
+        }
+
+        // ============================================
+        // INVALID JSON
+        // ============================================
+
+        if (error instanceof SyntaxError) {
+
+            throw new Error(
+                "AI returned invalid JSON."
+            );
+        }
+
+        // ============================================
+        // GENERIC ERROR
+        // ============================================
+
+        throw new Error(
+            error.message ||
+            "Failed to generate interview report."
+        );
+    }
 }
 
-module.exports = generateInterviewReport
+module.exports = generateInterviewReport;

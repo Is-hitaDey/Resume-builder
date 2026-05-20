@@ -29,7 +29,7 @@ const mongoose= require('mongoose');
  * -prpearation plan: [{
  *             day: Number    
  *             focus: String
- *              tasks:String
+ *              tasks:[String]
  *           }]
  */
 
@@ -67,11 +67,24 @@ const behavioralQuestionSchema= new mongoose.Schema({
     _id:false
 })
 
-const skillGapSchema= new mongoose.Schema({
+const skillGapSchema = new mongoose.Schema({
     skill:{
         type:String,
         required:[true, "Skill is required"]
+    },
+
+    severity:{
+        type:String,
+
+        enum:[
+            "low",
+            "medium",
+            "high"
+        ],
+
+        required:[true, "Severity is required"]
     }
+
 },{
     _id:false
 })
@@ -86,7 +99,7 @@ const preparationPlanSchema= new mongoose.Schema({
         required:[true, "Focus is required"]
     },
     tasks:{
-        type:String,
+        type:[String],
         required:[true, "Tasks are required"]
     }
 },{
