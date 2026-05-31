@@ -11,72 +11,45 @@ const ai = new GoogleGenAI({
 // ======================================================
 
 const responseZodSchema = z.object({
-
     matchScore: z
         .number()
         .min(0)
         .max(100),
-
     technicalQuestions: z.array(
-
         z.object({
-
             question: z.string(),
-
             intention: z.string(),
-
             answer: z.string()
-
         })
-
     ),
-
     behavioralQuestions: z.array(
-
         z.object({
-
             question: z.string(),
-
             intention: z.string(),
-
             answer: z.string()
-
         })
-
     ),
 
     skillGaps: z.array(
-
         z.object({
-
             skill: z.string(),
-
             severity: z.enum([
                 "low",
                 "medium",
                 "high"
             ])
-
         })
-
     ),
-
     preparationPlan: z.array(
-
         z.object({
-
             day: z.number(),
-
             focus: z.string(),
-
             tasks: z.array(
                 z.string()
             )
-
         })
-
-    )
-
+    ),
+    title: z.string().describe("The title of the job for which the interview report is generated")
 });
 
 
@@ -187,9 +160,7 @@ const responseSchema = {
                             "medium",
                             "high"
                         ]
-
                     }
-
                 },
 
                 required: [
@@ -208,9 +179,7 @@ const responseSchema = {
             items: {
 
                 type: "OBJECT",
-
                 properties: {
-
                     day: {
                         type: "NUMBER"
                     },
@@ -239,6 +208,12 @@ const responseSchema = {
 
             }
 
+        },
+
+        title: {
+            type: "STRING",
+            description:
+                "The title of the job for which the interview report is generated"
         }
 
     },
@@ -248,7 +223,8 @@ const responseSchema = {
         "technicalQuestions",
         "behavioralQuestions",
         "skillGaps",
-        "preparationPlan"
+        "preparationPlan",
+        "title"
     ]
 
 };
