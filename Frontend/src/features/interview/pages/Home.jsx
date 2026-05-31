@@ -1,9 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState,useRef } from 'react'
 import '../style/home.scss'
+import {useInterview} from "../hooks/useInterview.js"
+import { useNavigate } from 'react-router'
 
 const Home = () => {
+
+  const {loading,generateReport} = useInterview()
   const [fileName, setFileName] = useState('')
-  const [wordCount, setWordCount] = useState(0)
+
+  const [jobDescription, setJobDescription] = useState('')
+  const [selfDescription, setSelfDescription] = useState('')
+  const resumeInputRef = useRef()
+
+  const navigate=useNavigate()
+
+  const handleGenerateReport = async () => {
+    const resumeFile = resumeInputRef.current.files[0]
+    const data= await generateReport({resumeFile, selfDescription, jobDescription})
+    navigate(`/interview/${data._id}`)
+  }
+
+  
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
@@ -12,10 +29,14 @@ const Home = () => {
     }
   }
 
-  const handleSelfDescriptionChange = (e) => {
-    const text = e.target.value
-    setWordCount(text.split(/\s+/).filter(word => word.length > 0).length)
+  if (loading){
+    return(
+      <main className="home loading-state">
+        <h1>Loading your interview plan...</h1>
+      </main>
+    )
   }
+
 
   return (
     <main className="home">
@@ -35,6 +56,7 @@ const Home = () => {
               <h2 className="section-title">Job Description</h2>
             </div>
             <textarea
+            onChange={(e)=> {setJobDescription(e.target.value)}}
               className="input-textarea"
               placeholder="Paste the job description here..."
             />
@@ -55,6 +77,7 @@ const Home = () => {
                   <h3 className="upload-title">Click or drag to upload</h3>
                   <p className="upload-subtitle">PDF, DOCX up to 10MB</p>
                   <input
+                    ref={resumeInputRef}
                     type="file"
                     id="resume-upload"
                     className="file-input"
@@ -79,18 +102,14 @@ const Home = () => {
               <textarea
                 className="input-textarea self-description"
                 placeholder="Tell us about your background and experience..."
-                onChange={handleSelfDescriptionChange}
+                onChange={(e) => setSelfDescription(e.target.value)}
               />
-              <div className="word-counter">
-                <span className="word-text">{wordCount} / 500 words</span>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${(wordCount / 500) * 100}%` }}></div>
-                </div>
-              </div>
             </div>
 
             {/* Generate Button */}
-            <button className="generate-btn">
+            <button 
+            onClick={handleGenerateReport}
+            className="generate-btn">
               Generate Interview Questions <span className="arrow">→</span>
             </button>
           </section>
