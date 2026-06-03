@@ -45,7 +45,7 @@ export const useInterview=()=>{
 
     const getReports=async()=>{
         setLoading(true)   
-        response=null 
+        let response=null 
         try{
             response = await getAllInterviewReports()
             setReports(response.interviewReports)
