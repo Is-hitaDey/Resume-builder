@@ -13,7 +13,7 @@ const Register = () => {
   const {loading,handleRegister}= useAuth()
 
   const handleSubmit=async (e)=>{
-      e.preventdefault()
+      e.preventDefault()
       await handleRegister({username,email,password})
       navigate('/')
     };

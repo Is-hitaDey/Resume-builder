@@ -20,6 +20,8 @@ $info-text:      #6ea8fe;
 $purple:         #7c3aed;
 $purple-glow:    rgba(124, 58, 237, 0.2);
 $cyan:           #06b6d4;
+$danger:         #ef4444;
+$danger-glow:    rgba(239, 68, 68, 0.25);
 $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
 // ── Keyframes ────────────────────────────────────────────────────────────────
@@ -37,6 +39,17 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInLeft {
@@ -108,6 +121,11 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
   }
 }
 
+@keyframes logoPulse {
+  0%, 100% { filter: drop-shadow(0 0 4px $accent-glow); }
+  50%      { filter: drop-shadow(0 0 10px $accent-glow); }
+}
+
 // ── Loading Screen ───────────────────────────────────────────────────────────
 .loading-screen {
   width: 100%;
@@ -170,8 +188,7 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
+  padding: 0 1.5rem 3rem;
   gap: 2.5rem;
   position: relative;
   overflow: hidden;
@@ -208,6 +225,113 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
   & > * {
     position: relative;
     z-index: 1;
+  }
+}
+
+// ── Top Bar ──────────────────────────────────────────────────────────────────
+.top-bar {
+  width: 100%;
+  max-width: 940px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0 0.5rem;
+  animation: fadeInDown 0.5s ease-out both;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, rgba($accent, 0.15) 0%, rgba($purple, 0.1) 100%);
+    border: 1px solid rgba($accent, 0.2);
+    color: $accent;
+    animation: logoPulse 3s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba($accent, 0.08);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: rotate(15deg) scale(1.05);
+    }
+  }
+
+  &__title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $text-primary;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, $text-primary 0%, $text-secondary 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+// ── Logout Button ────────────────────────────────────────────────────────────
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  background: transparent;
+  border: 1px solid $border-color;
+  border-radius: 0.55rem;
+  color: $text-muted;
+  font-family: $font-stack;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.01em;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba($danger, 0.08) 0%, rgba($danger, 0.03) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  svg {
+    transition: transform 0.3s ease, color 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
+
+  &:hover {
+    border-color: rgba($danger, 0.4);
+    color: $danger;
+    box-shadow: 0 0 20px rgba($danger, 0.08), 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+
+    &::before {
+      opacity: 1;
+    }
+
+    svg {
+      color: $danger;
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 0 10px rgba($danger, 0.1);
   }
 }
 
@@ -871,6 +995,28 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
 
 // ── Responsive ────────────────────────────────────────────────────────────────
 @media (max-width: 768px) {
+  .top-bar {
+    padding: 1rem 0 0.25rem;
+
+    &__title {
+      font-size: 1rem;
+    }
+  }
+
+  .logout-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.78rem;
+
+    span {
+      display: none;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
   .page-header h1 {
     font-size: 1.75rem;
   }
@@ -926,7 +1072,11 @@ $font-stack:     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe U
 
 @media (max-width: 480px) {
   .home-page {
-    padding: 2rem 1rem;
+    padding: 0 1rem 2rem;
+  }
+
+  .top-bar {
+    padding: 0.75rem 0 0;
   }
 
   .page-header h1 {

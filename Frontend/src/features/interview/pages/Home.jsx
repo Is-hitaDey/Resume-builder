@@ -1,7 +1,8 @@
-import React, { useState, useRef,useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import {logout} from '../../auth/services/auth.api.js'
 
 const Home = () => {
 
@@ -22,6 +23,11 @@ const Home = () => {
     navigate(`/interview/${data._id}`)
   }
 
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
+
   if (loading) {
     return (
       <main className='loading-screen'>
@@ -32,6 +38,24 @@ const Home = () => {
 
   return (
     <div className='home-page'>
+
+      {/* Top Bar */}
+      <div className='top-bar'>
+        <div className='top-bar__brand'>
+          <span className='top-bar__logo'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
+          </span>
+          <span className='top-bar__title'>InterviewAI</span>
+        </div>
+        <button onClick={handleLogout} className='logout-btn'>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
 
       {/* Page Header */}
       <header className='page-header'>
