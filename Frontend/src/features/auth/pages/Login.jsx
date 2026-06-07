@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import "../auth.form.scss"
 import { useNavigate, Link } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
+import toast from 'react-hot-toast'
 
 
 
@@ -15,8 +16,16 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await handleLogin({email,password})
-    navigate('/')
+    try{
+      const response = await handleLogin({email,password})
+      toast.success("Login successful!")
+      navigate('/')
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Login failed"
+      )
+    }
   }
 
   if (loading){

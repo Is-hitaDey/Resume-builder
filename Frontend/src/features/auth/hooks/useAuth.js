@@ -11,40 +11,57 @@ export const useAuth = () => {
 
 
     const handleLogin = async ({ email, password }) => {
-        setLoading(true)
+        setLoading(true);
+
         try {
-            const data = await login({ email, password })
+            const data = await login({ email, password });
 
-            setUser(data.user)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
+            setUser(data.user);
 
-    const handleRegister = async ({ username, email, password }) => {
+            return {
+                success: true
+            };
 
-        setLoading(true)
-        try {
-            const data = await register({ username, email, password })
-
-            setUser(data.user)
         } catch (error) {
-            console.log(error)
-        } finally {
-            setLoading(false)
-        }
 
+            throw error;
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+   const handleRegister = async ({ username, email, password }) => {
+    setLoading(true);
+
+    try {
+        const data = await register({
+            username,
+            email,
+            password
+        });
+
+        setUser(data.user);
+
+        return {
+            success: true
+        };
+
+    } catch (error) {
+        throw error;
+    } finally {
+        setLoading(false);
     }
+};
 
     const handleLogout = async () => {
         setLoading(true)
         try {
-            const data = await logout()
+            await logout()
             setUser(null)
         } catch (error) {
             console.log(error)
+            throw error;
         } finally {
             setLoading(false)
         }
@@ -63,6 +80,12 @@ export const useAuth = () => {
                     setUser(null);
                 }
             } catch (error) {
+
+                if (error?.response?.status === 401) {
+                    setUser(null);
+                    return;
+                }
+
                 console.error("Failed to fetch user:", error);
                 setUser(null);
             } finally {
@@ -71,7 +94,7 @@ export const useAuth = () => {
         };
 
         getAndSetUser();
-    }, []);
+    }, [setUser, setLoading]);
 
     return { user, loading, handleRegister, handleLogin, handleLogout }
 }
