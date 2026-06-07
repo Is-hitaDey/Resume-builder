@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api= axios.create({
-    baseURL:"https://resume-builder-le3p.onrender.com",
+    baseURL:process.env.VITE_UPI_URL,
     withCredentials:true
 })
 export async function register({ username, email, password }) {
